@@ -14,7 +14,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import ca.rokc.kittymunch.R;
 import ca.rokc.kittymunch.geometry.Point;
@@ -119,20 +118,7 @@ public class Protagonist extends GameObject {
 		
 		canvas.drawBitmap(bitmap, (int)location.x - 35, (int)location.y - 45, new Paint());
 
-		drawRectangle(canvas, movementBounds, Color.GREEN);
-		drawRectangle(canvas, dropBounds, Color.RED);
-	}
-
-	private void drawRectangle(Canvas canvas, Rectangle rectangle, int color) {
-		Paint paint;
-		paint = new Paint();
-		paint.setStyle(Paint.Style.STROKE);
-		paint.setColor(color);
-		
-		canvas.drawRect(
-				rectangle.left, 
-				rectangle.top, 
-				rectangle.right, 
-				rectangle.bottom, paint);
+//		drawRectangle(canvas, movementBounds, Color.GREEN);
+//		drawRectangle(canvas, dropBounds, Color.RED);
 	}
 }
