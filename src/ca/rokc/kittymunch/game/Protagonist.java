@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Wayne Beaton.
+ * Copyright (c) 2010, 2015 Wayne Beaton.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,26 +14,35 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import ca.rokc.kittymunch.R;
 import ca.rokc.kittymunch.geometry.Point;
-import ca.rokc.kittymunch.geometry.Rectangle;
 
 public class Protagonist extends GameObject {
 
-	public Rectangle movementBounds;
-	public Rectangle dropBounds;
-	
+
 	private Point targetLocation;
 
 	private final Bitmap bitmap;
+
+	private Point home, shoulder, elbow;
+
+	private int size;
 	
-	public Protagonist(Context context, Rectangle movementBounds, Rectangle dropBounds, Point location) {
-		super(location);
-		this.movementBounds = movementBounds;
-		this.dropBounds = dropBounds;
-		bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.hand);
+	public Protagonist(Context context, Point location) {
+		super(new Point(location.x, location.y));
 		
+		bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.hand);
+		size = bitmap.getHeight();
+		
+		this.location.y -= size;
+		home = location.copy();
+		shoulder = location.copy();
+		elbow = new Point(0,0);
+		
+		computeArmPosition();		
 	}
 	
 	/**
@@ -58,13 +67,13 @@ public class Protagonist extends GameObject {
 	@Override
 	public void moveBy(Point delta) {
 		super.moveBy(delta);
-		location.moveInside(movementBounds);
+		computeArmPosition();
 	}
 	
 	@Override
 	public void moveTo(Point target) {
 		super.moveTo(target);
-		location.moveInside(movementBounds);
+		computeArmPosition();
 	}
 		
 	@Override
@@ -89,13 +98,7 @@ public class Protagonist extends GameObject {
 	public void release() {
 		targetLocation = null;
 		
-		// TODO This may be causing threading issues.
-		if (dropBounds.contains(location)) {
-			// We have to copy the location, since the receiver;s
-			// location is a mutable object that might change.
-			game.addBrick(new Point(location));
-			
-		}
+		game.addBrick(new Point(location));
 	}
 
 	@Override
@@ -111,14 +114,50 @@ public class Protagonist extends GameObject {
 	
 	@Override
 	public void drawOn(Canvas canvas) {
-//		Paint paint = new Paint();
-//		paint.setStyle(Paint.Style.FILL_AND_STROKE);
-//		paint.setColor(Color.RED);
-//		canvas.drawCircle(protagonist.location.x, protagonist.location.y, 15, paint);
+		Paint paint = new Paint();
 		
-		canvas.drawBitmap(bitmap, (int)location.x - 35, (int)location.y - 45, new Paint());
-
-//		drawRectangle(canvas, movementBounds, Color.GREEN);
-//		drawRectangle(canvas, dropBounds, Color.RED);
+		drawForearmOn(canvas, paint);
+		
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		paint.setColor(Color.RED);
+		canvas.drawLine(shoulder.x, shoulder.y, elbow.x, elbow.y, paint);
+		canvas.drawLine(elbow.x, elbow.y, location.x, location.y, paint);
 	}
+
+	private void drawForearmOn(Canvas canvas, Paint paint) {
+		canvas.save();
+		Matrix matrix = canvas.getMatrix();
+		matrix.postTranslate( - bitmap.getWidth() / 2, - bitmap.getHeight());
+		matrix.postRotate(elbow.angleTo(location));
+
+		matrix.postTranslate((int)elbow.x, (int)elbow.y);
+		canvas.setMatrix(matrix);
+		canvas.drawBitmap(bitmap, 0, 0, paint);
+		canvas.restore();
+	}
+	
+	private void computeArmPosition() {
+        if (location.y > (home.y-size)) shoulder.y = location.y + size;
+        else shoulder.y = home.y;
+
+        double h = Math.sqrt(Math.pow(location.x-home.x, 2) + Math.pow(home.y-location.y, 2));
+        double max = size * 32 / 17;
+        if (home.y - location.y > max) location.y = (float) (home.y - max);
+
+        if (h > max)
+                shoulder.x = (float) (location.x + (location.x < home.x ? 1 : -1) * Math.sqrt(Math.pow(max,2)-Math.pow(location.y-shoulder.y,2)));
+        else shoulder.x = home.x;
+
+        double a2 = Math.pow(location.x-shoulder.x, 2) + Math.pow(shoulder.y-location.y, 2);
+        double a = Math.min(Math.sqrt(a2),2.0*size);
+
+        double A = Math.acos(a / (2 * size));
+        double cosB = location.x == shoulder.x ? 0 : (a2+Math.pow(location.x-shoulder.x,2)-Math.pow(location.y-shoulder.y,2))/(2*a*(location.x-shoulder.x));
+        double B = Math.acos(cosB);
+        double C = B - A;
+
+        elbow.x = (float) (shoulder.x + (size * Math.cos(C)));
+        elbow.y = (float) (shoulder.y - (size * Math.sin(C)));
+	}
+
 }

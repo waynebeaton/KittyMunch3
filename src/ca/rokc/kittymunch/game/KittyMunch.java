@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Wayne Beaton.
+ * Copyright (c) 2010, 2015 Wayne Beaton.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,9 +133,7 @@ public class KittyMunch {
 
 	protected void initialize() {
 		int middle = bounds.getMiddle();
-		Rectangle movementBounds = new Rectangle(middle-half_building_top, bounds.bottom-(ledge+sidewalk), middle+half_building_top, bounds.bottom);
-		Rectangle releaseBounds = new Rectangle(middle-half_building_top, bounds.bottom-(ledge+sidewalk), middle+half_building_top, bounds.bottom-ledge);
-		setProtagonist(new Protagonist(context, movementBounds, releaseBounds, new Point(middle, bounds.bottom)));
+		setProtagonist(new Protagonist(context, new Point(middle, bounds.bottom)));
 	}
 
 	public void setProtagonist(Protagonist protagonist) {
@@ -144,8 +142,8 @@ public class KittyMunch {
 	}
 
 	public void addBrick(Point location) {
-		double p = (bounds.getMiddle() - location.x) / half_building_top;
-		double q = (half_building_top - half_building_bottom) / (facade / drop_speed);
+		float p = (bounds.getMiddle() - location.x) / half_building_top;
+		float q = (half_building_top - half_building_bottom) / (facade / drop_speed);
 		addProjectile(new Brick(location, new Point(q*p, -drop_speed), facade / drop_speed));
 	}
 }

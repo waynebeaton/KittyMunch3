@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Wayne Beaton.
+ * Copyright (c) 2010, 2015 Wayne Beaton.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,10 +18,10 @@ package ca.rokc.kittymunch.geometry;
  */
 public class Point {
 
-	public double x;
-	public double y;
+	public float x;
+	public float y;
 
-	public Point(double x, double y) {
+	public Point(float x, float y) {
 		this.x = x;
 		this.y = y;
 	}
@@ -45,9 +45,9 @@ public class Point {
 	 * @return A vector of the requested approximate length
 	 */
 	public Point unitVectorTo(Point point, int unit) {
-		double length = distanceTo(point);
-		double h = ((point.x - x) * unit / length);
-		double v = ((point.y - y) * unit / length);
+		float length = distanceTo(point);
+		float h = ((point.x - x) * unit / length);
+		float v = ((point.y - y) * unit / length);
 		return new Point(h, v);
 	}
 
@@ -64,8 +64,8 @@ public class Point {
 		return distanceTo(point) < distance;
 	}
 	
-	public double distanceTo(Point point) {
-		return Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
+	public float distanceTo(Point point) {
+		return (float) Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
 	}
 
 	/**
@@ -82,5 +82,15 @@ public class Point {
 	public void moveBy(Point velocity) {
 		x += velocity.x;
 		y += velocity.y;
+	}
+	
+	public float angleTo(Point target) {
+		if (target.y == y) 
+			return 0;
+		return (float) (-Math.atan((target.x-x)/(target.y-y)) / Math.PI * 180);
+	}
+	
+	public Point copy() {
+		return new Point(x,y);
 	}
 }
